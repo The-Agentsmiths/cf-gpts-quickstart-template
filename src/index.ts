@@ -102,47 +102,6 @@ app.openapi(
   }
 );
 
-// multipart/form-data example for binary image upload
-app.openapi(
-  createRoute({
-    method: "post",
-    path: "/image",
-    operationId: "imagePost",
-    request: {
-      body: {
-        description: "body",
-        content: {
-          "multipart/form-data": {
-            schema: z.object({
-              image: z.any(),
-            }),
-          },
-        },
-      }
-    },
-    responses: {
-      200: {
-        description: "Respond a message [post]",
-        content: {
-          "application/json": {
-            schema: z.object({
-              message: z.string(),
-            }),
-          },
-        },
-      },
-    },
-  }),
-  (c) => {
-    console.log(c.req.valid("form"))
-    const { image } = c.req.valid("form");
-
-    return c.jsonT({
-      message: `hello ${image.length}`,
-    });
-  }
-);
-
 app.get(
   "/ui",
   swaggerUI({
