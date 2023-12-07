@@ -1,7 +1,22 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
+import { Context, Hono } from "hono";
+import { env, getRuntimeKey } from "hono/adapter";
+import { prettyJSON } from 'hono/pretty-json'
+import { bearerAuth } from 'hono/bearer-auth'
 
 const app = new OpenAPIHono();
+
+app.use('*', prettyJSON())
+
+const token = 'honoiscool'
+
+app.use('/api/*', bearerAuth({ token }))
+
+app.openAPIRegistry.registerComponent('securitySchemes', 'securitySchemes', {
+  type: 'http',
+  scheme: 'bearer',
+})
 
 app.openapi(
   createRoute({
@@ -10,7 +25,7 @@ app.openapi(
     operationId: "hello",
     responses: {
       200: {
-        description: "Respond a message",
+        description: "Respond to a message",
         content: {
           "application/json": {
             schema: z.object({
@@ -23,10 +38,47 @@ app.openapi(
   }),
   (c) => {
     return c.jsonT({
-      message: "hello ![](https://imagedelivery.net/FVn4Kw8Yr8auy8XS7UL4RA/773bb550-d7ae-4afd-c077-eabf76dce900/public)",
+      message: "hello, the time is: " + new Date().toISOString(),
     });
   }
 );
+
+// authorized route example
+/*
+
+app.get('/api/page', (c) => {
+  return c.json({ message: 'You are authorized' })
+})
+*/
+app.openapi({
+  method: "get",
+  path: "/api/page",
+  operationId: "page",
+  security: [
+    {
+      bearerAuth: [
+        "read",
+        "write",
+      ],
+    },
+  ],
+  responses: {
+    200: {
+      description: "Respond to a message",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string(),
+          }),
+        },
+      },
+    },
+  },
+}, (c) => {
+  return c.jsonT({
+    message: "hello, the time is: " + new Date().toISOString(),
+  });
+});
 
 app.openapi(
   createRoute({
@@ -77,7 +129,7 @@ app.openapi(
             }),
           },
         },
-      }
+      },
     },
     responses: {
       200: {
@@ -93,7 +145,7 @@ app.openapi(
     },
   }),
   (c) => {
-    console.log(c.req.valid("json"))
+    console.log(c.req.valid("json"));
     const { name } = c.req.valid("json");
 
     return c.jsonT({
@@ -109,22 +161,21 @@ app.get(
   })
 );
 
-app.doc("/doc", {
+
+
+// https://github.com/honojs/middleware/tree/main/packages/zod-openapi#how-to-access-context-in-appdoc
+app.doc("/doc", (c) => ({
   info: {
-    title: "An API",
+    title: "CF GPTs Quickstart API",
     version: "v1",
   },
   servers: [
     {
-      url: "https://my-app.bradams128.workers.dev",
-      description: "Production server",
-    },
-    {
-      url: "http://localhost:8787",
-      description: "Development server",
-    },
+      url: new URL(c.req.url).origin,
+      description: 'Current environment',
+    }
   ],
   openapi: "3.1.0",
-});
+}));
 
 export default app;
