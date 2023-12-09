@@ -1,7 +1,5 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
-import { Context, Hono } from "hono";
-import { env, getRuntimeKey } from "hono/adapter";
 import { prettyJSON } from 'hono/pretty-json'
 import { bearerAuth } from 'hono/bearer-auth'
 
