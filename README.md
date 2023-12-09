@@ -22,3 +22,7 @@ npm run deploy
 
 ### Hono
 - Setup Bearer Auth in Hono: https://github.com/honojs/middleware/tree/main/packages/zod-openapi#how-to-setup-authorization
+
+## Known Issues
+
+Auth works when OpenAI GPTs calls it, but not locally in the Swagger UI. This is because the Swagger UI is not sending the Authorization header. Track the issue here: https://github.com/The-Agentsmiths/cf-gpts-quickstart-template/issues/10

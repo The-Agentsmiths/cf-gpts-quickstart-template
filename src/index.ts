@@ -1,20 +1,23 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
-import { prettyJSON } from 'hono/pretty-json'
-import { bearerAuth } from 'hono/bearer-auth'
+import { prettyJSON } from "hono/pretty-json";
+import { bearerAuth } from "hono/bearer-auth";
 
 const app = new OpenAPIHono();
 
-app.use('*', prettyJSON())
+app.use("*", prettyJSON());
 
-const token = 'honoiscool'
+const token = "honoiscool";
 
-app.use('/api/*', bearerAuth({ token }))
+app.use("/api/*", bearerAuth({ token }));
 
-app.openAPIRegistry.registerComponent('securitySchemes', 'securitySchemes', {
-  type: 'http',
-  scheme: 'bearer',
-})
+app.openAPIRegistry.registerComponent("securitySchemes", "", {
+  type: "http",
+  name: "Authorization",
+  scheme: "bearer",
+  in: "header",
+  description: "Bearer token",
+});
 
 app.openapi(
   createRoute({
@@ -41,42 +44,44 @@ app.openapi(
   }
 );
 
-// authorized route example
-/*
+const HeadersSchema = z.object({
+  // Header keys must be in lowercase, `Authorization` is not allowed.
+  authorization: z.string().openapi({
+    example: "Bearer SECRET",
+  })
+});
 
-app.get('/api/page', (c) => {
-  return c.json({ message: 'You are authorized' })
-})
-*/
-app.openapi({
-  method: "get",
-  path: "/api/page",
-  operationId: "page",
-  security: [
-    {
-      bearerAuth: [
-        "read",
-        "write",
-      ],
-    },
-  ],
-  responses: {
-    200: {
-      description: "Respond to a message",
-      content: {
-        "application/json": {
-          schema: z.object({
-            message: z.string(),
-          }),
-        },
+// auth example
+app.openapi(
+  {
+    method: "get",
+    path: "/api/page",
+    operationId: "page",
+    security: [
+      {
+        bearerAuth: [],
       },
+    ],
+    responses: {
+      200: {
+        description: "Respond to a message",
+        content: {
+          "application/json": {
+            schema: z.object({
+              message: z.string(),
+            }),
+          },
+        },
+      }
     },
   },
-}, (c) => {
-  return c.jsonT({
-    message: "hello, the time is: " + new Date().toISOString(),
-  });
-});
+  (c) => {
+    return c.jsonT({
+      message: "hello, the time is: " + new Date().toISOString(),
+    });
+  }
+);
+
 
 app.openapi(
   createRoute({
@@ -159,8 +164,6 @@ app.get(
   })
 );
 
-
-
 // https://github.com/honojs/middleware/tree/main/packages/zod-openapi#how-to-access-context-in-appdoc
 app.doc("/doc", (c) => ({
   info: {
@@ -170,8 +173,8 @@ app.doc("/doc", (c) => ({
   servers: [
     {
       url: new URL(c.req.url).origin,
-      description: 'Current environment',
-    }
+      description: "Current environment",
+    },
   ],
   openapi: "3.1.0",
 }));
