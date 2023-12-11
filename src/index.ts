@@ -11,6 +11,7 @@ const app = new OpenAPIHono();
 const token = "the-agentsmiths-are-coming";
 const GLOBAL_TIMEOUT = 10000; // 10 seconds
 
+// middleware
 app.use("*", prettyJSON());
 app.use("/api/*", bearerAuth({ token }));
 
