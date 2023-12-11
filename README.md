@@ -25,6 +25,4 @@ npm run deploy
 
 ## Known Issues
 
-Auth works when OpenAI GPTs calls it, but not locally in the Swagger UI. This is because the Swagger UI is not sending the Authorization header. Track the issue here: https://github.com/The-Agentsmiths/cf-gpts-quickstart-template/issues/10
-
 Jest testing fails. Not sure why yet, but issue referenced here: https://github.com/honojs/middleware/issues/298
