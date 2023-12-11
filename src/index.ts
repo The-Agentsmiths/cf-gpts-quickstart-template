@@ -4,9 +4,12 @@ import { prettyJSON } from "hono/pretty-json";
 import { bearerAuth } from "hono/bearer-auth";
 import { MessageSchema } from "./schemas/responses";
 import { NameSchema } from "./schemas/requests";
+import createHttpError from "http-errors";
+import { globalTimeoutRace } from "./helpers/timeout";
 
 const app = new OpenAPIHono();
 const token = "the-agentsmiths-are-coming";
+const GLOBAL_TIMEOUT = 10000; // 10 seconds
 
 app.use("*", prettyJSON());
 app.use("/api/*", bearerAuth({ token }));
@@ -57,7 +60,7 @@ app.openapi(
   }
 );
 
-// auth example
+// bearer auth example
 app.openapi(
   {
     method: "get",
@@ -115,6 +118,55 @@ app.openapi(
   }
 );
 
+// long running operation example
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/long-running-operation",
+    operationId: "longRunningOperation",
+    description: `This operation takes a long time to complete (${(GLOBAL_TIMEOUT + 1000)/ 1000} seconds) so we set a timeout of ${GLOBAL_TIMEOUT / 1000} seconds to fail the operation.`,
+    responses: {
+      200: {
+        description: "Successful operation",
+        content: {
+          "application/json": {
+            schema: MessageSchema,
+          },
+        },
+      },
+      500: {
+        description: "Operation timed out",
+        content: {
+          "application/json": {
+            schema: MessageSchema,
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    try {
+      const result = await globalTimeoutRace(
+        () => new Promise(
+          (resolve, _) =>
+            setTimeout(() => resolve("i did it!"), GLOBAL_TIMEOUT + 1000) // a long ms call -- imagine a long gpt call for example. Use globalTimeoutRace whenever you have a long running operation that you don't know how long it will take. Change GLOBAL_TIMEOUT + 1000 to GLOBAL_TIMEOUT - 1000 to see the method succeed.
+        )
+      );
+
+      return c.jsonT({
+        message: `Operation completed: ${result}`,
+      });
+    } catch (error: any) {
+      return c.jsonT(
+        {
+          message: error.message,
+        },
+        error.status || 500
+      );
+    }
+  }
+);
+
 // post request example
 app.openapi(
   createRoute({
@@ -157,7 +209,5 @@ app.get(
     url: "/doc",
   })
 );
-
-
 
 export default app;
