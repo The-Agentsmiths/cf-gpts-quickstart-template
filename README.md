@@ -1,3 +1,5 @@
+Remove the `.example` from the `.wrangler.toml.example` and the `.dev.vars.example`.
+
 ```
 npm install
 npm run dev
@@ -15,6 +17,7 @@ npm run deploy
 
 ### Cloudflare
 - Worker Limits: https://developers.cloudflare.com/workers/platform/limits/#worker-limits
+- Adding secrets to prod: https://developers.cloudflare.com/workers/configuration/secrets/#secrets-on-deployed-workers
 
 ### GPTs
 - Create a new GPT: https://chat.openai.com/gpts/editor
