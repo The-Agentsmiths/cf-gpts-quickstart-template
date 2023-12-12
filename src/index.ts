@@ -4,7 +4,6 @@ import { prettyJSON } from "hono/pretty-json";
 import { bearerAuth } from "hono/bearer-auth";
 import { MessageSchema } from "./schemas/responses";
 import { NameSchema } from "./schemas/requests";
-import createHttpError from "http-errors";
 import { globalTimeoutRace } from "./helpers/timeout";
 
 const app = new OpenAPIHono();
